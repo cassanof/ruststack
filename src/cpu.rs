@@ -131,6 +131,46 @@ impl CPU {
                 self.registers_memory
                     .set_buf(reg as usize, (reg as usize) + 2, val);
             }
+            OpCode::MovLitMem => {
+                let val = self.fetch_buf(2)?;
+                let addr = to_u16(&self.fetch_buf(2)?);
+                self.memory
+                    .set_buf(addr as usize, (addr as usize) + 2, &val);
+            }
+            OpCode::MovRegPtrReg => {
+                let reg_from = self.fetch_reg_idx()?;
+                let reg_to = self.fetch_reg_idx()?;
+                let ptr = to_u16(
+                    &self
+                        .registers_memory
+                        .get_buf(reg_from as usize, (reg_from as usize) + 2)
+                        .unwrap(),
+                );
+                let value = &self
+                    .memory
+                    .get_buf(ptr as usize, (ptr as usize) + 2)
+                    .unwrap();
+                self.registers_memory.set_buf(reg_to, reg_to + 2, value);
+            }
+            OpCode::MovLitOffReg => {
+                let base_addr = to_u16(&self.fetch_buf(2)?);
+                let reg_offset = self.fetch_reg_idx()?;
+                let reg_to = self.fetch_reg_idx()?;
+                let offset = to_u16(
+                    &self
+                        .registers_memory
+                        .get_buf(reg_offset as usize, (reg_offset as usize) + 2)
+                        .unwrap(),
+                );
+                let value = &self
+                    .memory
+                    .get_buf(
+                        (base_addr + offset) as usize,
+                        (base_addr + offset) as usize + 2,
+                    )
+                    .unwrap();
+                self.registers_memory.set_buf(reg_to, reg_to + 2, value);
+            }
             OpCode::AddRegReg => {
                 let r1_idx = self.fetch_reg_idx()?;
                 let r2_idx = self.fetch_reg_idx()?;
@@ -139,10 +179,236 @@ impl CPU {
                 let result = reg_val1 + reg_val2;
                 self.set_register(&Register::ACC, result);
             }
-            OpCode::JmpNE => {
+            OpCode::AddLitReg => {
+                let val = to_u16(&self.fetch_buf(2)?);
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = val + reg_val;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::SubRegLit => {
+                let val = to_u16(&self.fetch_buf(2)?);
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = val - reg_val;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::SubLitReg => {
+                let val = to_u16(&self.fetch_buf(2)?);
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = reg_val - val;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::SubRegReg => {
+                let r1_idx = self.fetch_reg_idx()?;
+                let r2_idx = self.fetch_reg_idx()?;
+                let reg_val1 = to_u16(&self.registers_memory.get_buf(r1_idx, r1_idx + 2).unwrap());
+                let reg_val2 = to_u16(&self.registers_memory.get_buf(r2_idx, r2_idx + 2).unwrap());
+                let result = reg_val2 - reg_val1;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::MulLitReg => {
+                let val = to_u16(&self.fetch_buf(2)?);
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = val * reg_val;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::MulRegReg => {
+                let r1_idx = self.fetch_reg_idx()?;
+                let r2_idx = self.fetch_reg_idx()?;
+                let reg_val1 = to_u16(&self.registers_memory.get_buf(r1_idx, r1_idx + 2).unwrap());
+                let reg_val2 = to_u16(&self.registers_memory.get_buf(r2_idx, r2_idx + 2).unwrap());
+                let result = reg_val1 * reg_val2;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::IncReg => {
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = reg_val + 1;
+                self.registers_memory
+                    .set_buf(r_idx, r_idx + 2, &result.to_be_bytes());
+            }
+            OpCode::DecReg => {
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = reg_val - 1;
+                self.registers_memory
+                    .set_buf(r_idx, r_idx + 2, &result.to_be_bytes());
+            }
+            OpCode::ShlRegLit => {
+                let val = to_u16(&self.fetch_buf(2)?);
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = reg_val << val;
+                self.registers_memory
+                    .set_buf(r_idx, r_idx + 2, &result.to_be_bytes());
+            }
+            OpCode::ShlRegReg => {
+                let r1_idx = self.fetch_reg_idx()?;
+                let r2_idx = self.fetch_reg_idx()?;
+                let reg_val1 = to_u16(&self.registers_memory.get_buf(r1_idx, r1_idx + 2).unwrap());
+                let reg_val2 = to_u16(&self.registers_memory.get_buf(r2_idx, r2_idx + 2).unwrap());
+                let result = reg_val1 << reg_val2;
+                self.registers_memory
+                    .set_buf(r1_idx, r1_idx + 2, &result.to_be_bytes());
+            }
+            OpCode::ShrRegLit => {
+                let val = to_u16(&self.fetch_buf(2)?);
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = reg_val >> val;
+                self.registers_memory
+                    .set_buf(r_idx, r_idx + 2, &result.to_be_bytes());
+            }
+            OpCode::ShrRegReg => {
+                let r1_idx = self.fetch_reg_idx()?;
+                let r2_idx = self.fetch_reg_idx()?;
+                let reg_val1 = to_u16(&self.registers_memory.get_buf(r1_idx, r1_idx + 2).unwrap());
+                let reg_val2 = to_u16(&self.registers_memory.get_buf(r2_idx, r2_idx + 2).unwrap());
+                let result = reg_val1 >> reg_val2;
+                self.registers_memory
+                    .set_buf(r1_idx, r1_idx + 2, &result.to_be_bytes());
+            }
+            OpCode::AndReglit => {
+                let r_idx = self.fetch_reg_idx()?;
+                let val = to_u16(&self.fetch_buf(2)?);
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = reg_val & val;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::AndRegReg => {
+                let r1_idx = self.fetch_reg_idx()?;
+                let r2_idx = self.fetch_reg_idx()?;
+                let reg_val1 = to_u16(&self.registers_memory.get_buf(r1_idx, r1_idx + 2).unwrap());
+                let reg_val2 = to_u16(&self.registers_memory.get_buf(r2_idx, r2_idx + 2).unwrap());
+                let result = reg_val1 & reg_val2;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::OrRegLit => {
+                let r_idx = self.fetch_reg_idx()?;
+                let val = to_u16(&self.fetch_buf(2)?);
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = reg_val | val;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::OrRegReg => {
+                let r1_idx = self.fetch_reg_idx()?;
+                let r2_idx = self.fetch_reg_idx()?;
+                let reg_val1 = to_u16(&self.registers_memory.get_buf(r1_idx, r1_idx + 2).unwrap());
+                let reg_val2 = to_u16(&self.registers_memory.get_buf(r2_idx, r2_idx + 2).unwrap());
+                let result = reg_val1 | reg_val2;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::XorRegLit => {
+                let r_idx = self.fetch_reg_idx()?;
+                let val = to_u16(&self.fetch_buf(2)?);
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = reg_val ^ val;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::XorRegReg => {
+                let r1_idx = self.fetch_reg_idx()?;
+                let r2_idx = self.fetch_reg_idx()?;
+                let reg_val1 = to_u16(&self.registers_memory.get_buf(r1_idx, r1_idx + 2).unwrap());
+                let reg_val2 = to_u16(&self.registers_memory.get_buf(r2_idx, r2_idx + 2).unwrap());
+                let result = reg_val1 ^ reg_val2;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::NotReg => {
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let result = !reg_val;
+                self.set_register(&Register::ACC, result);
+            }
+            OpCode::JmpNELit => {
                 let value = to_u16(&self.fetch_buf(2)?);
                 let addr = to_u16(&self.fetch_buf(2)?);
                 if value != self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpNEReg => {
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if reg_val != self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpEQLit => {
+                let value = to_u16(&self.fetch_buf(2)?);
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if value == self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpEQReg => {
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if reg_val == self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpLTLit => {
+                let value = to_u16(&self.fetch_buf(2)?);
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if value < self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpLTReg => {
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if reg_val < self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpGTLit => {
+                let value = to_u16(&self.fetch_buf(2)?);
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if value > self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpGTReg => {
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if reg_val > self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpLELit => {
+                let value = to_u16(&self.fetch_buf(2)?);
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if value <= self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpLEReg => {
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if reg_val <= self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpGELit => {
+                let value = to_u16(&self.fetch_buf(2)?);
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if value >= self.get_register(&Register::ACC) {
+                    self.set_register(&Register::IP, addr);
+                }
+            }
+            OpCode::JmpGEReg => {
+                let r_idx = self.fetch_reg_idx()?;
+                let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
+                let addr = to_u16(&self.fetch_buf(2)?);
+                if reg_val >= self.get_register(&Register::ACC) {
                     self.set_register(&Register::IP, addr);
                 }
             }

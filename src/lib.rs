@@ -2,7 +2,6 @@ pub mod cpu;
 pub mod memory;
 pub mod opcodes;
 pub mod register;
-pub mod mapper;
 
 /// The size of a register in bytes. 16 bits in this case.
 pub const REGISTER_SIZE: usize = 2;
@@ -224,7 +223,7 @@ mod tests {
         mem.push(Register::ACC.to_index() as u8);
         mem.push(0x01);
         mem.push(0x00);
-        mem.push(OpCode::JmpNE.into());
+        mem.push(OpCode::JmpNELit.into());
         mem.push(0x00);
         mem.push(0x03); // 0x0003
         mem.push(0x00);
