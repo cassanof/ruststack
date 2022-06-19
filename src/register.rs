@@ -1,13 +1,13 @@
 use std::str::FromStr;
-use strum_macros::{EnumCount as EnumCountMacro, EnumIter, AsRefStr};
+use strum_macros::{AsRefStr, EnumCount as EnumCountMacro, EnumIter};
 
-use crate::{cpu::CpuError, REGISTER_SIZE};
+use crate::cpu::CpuError;
 
 #[derive(Debug, Copy, Clone, EnumCountMacro, EnumIter, AsRefStr, PartialEq)]
 /// Represents the registers available in the CPU.
 pub enum Register {
-    IP,
-    ACC,
+    IP,  // Instruction pointer
+    ACC, // Accumulator
     R1,
     R2,
     R3,
@@ -16,11 +16,13 @@ pub enum Register {
     R6,
     R7,
     R8,
+    SP, // Stack pointer
+    BP, // Base pointer
 }
 
 impl Register {
     pub fn to_index(&self) -> usize {
-        (*self as usize) * REGISTER_SIZE
+        *self as usize
     }
 }
 
@@ -39,6 +41,8 @@ impl FromStr for Register {
             "r6" => Ok(Register::R6),
             "r7" => Ok(Register::R7),
             "r8" => Ok(Register::R8),
+            "sp" => Ok(Register::SP),
+            "bp" => Ok(Register::BP),
             _ => Err(CpuError::InvalidRegister(s.to_string())),
         }
     }
