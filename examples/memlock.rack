@@ -1,0 +1,4 @@
+psh 5
+mov 0xFEFE r1
+mov [r1] r1
+mov [4 + r1] r2

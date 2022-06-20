@@ -114,6 +114,21 @@ impl ASTParser {
                 let value = rule.as_str().parse::<u16>()?;
                 Ok(ASTArg::Lit(value))
             }
+            Rule::hexnumber => {
+                let trimmed = rule.as_str().trim_start_matches("0x");
+                let value = u16::from_str_radix(trimmed, 16)?;
+                Ok(ASTArg::Lit(value))
+            }
+            Rule::octnumber => {
+                let trimmed = rule.as_str().trim_start_matches("0o");
+                let value = u16::from_str_radix(trimmed, 8)?;
+                Ok(ASTArg::Lit(value))
+            }
+            Rule::binnumber => {
+                let trimmed = rule.as_str().trim_start_matches("0b");
+                let value = u16::from_str_radix(trimmed, 2)?;
+                Ok(ASTArg::Lit(value))
+            }
             Rule::reg => {
                 let reg = Register::from_str(rule.as_str())
                     .map_err(|e| AssemblerError::Parser(e.to_string()))?;
@@ -122,6 +137,20 @@ impl ASTParser {
             Rule::word => {
                 let value = rule.as_str();
                 Ok(ASTArg::Label(value.to_string()))
+            }
+            Rule::memloc => {
+                let mut inner = rule.into_inner();
+                let memloc_rule = inner.next().unwrap();
+                Ok(ASTArg::Mem(Box::new(Self::parse_value(memloc_rule)?)))
+            }
+            Rule::memoff => {
+                let mut inner = rule.into_inner();
+                let num = inner.next().unwrap();
+                let memoff_rule = inner.next().unwrap();
+                Ok(ASTArg::Offset(
+                    Box::new(Self::parse_value(num)?),
+                    Box::new(Self::parse_value(memoff_rule)?),
+                ))
             }
             _ => Err(AssemblerError::Parser(format!(
                 "Unknown rule: {:?}",

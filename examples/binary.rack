@@ -1,0 +1,3 @@
+mov 0b100011 r4
+add 0b0 r2
+add 0b1 acc

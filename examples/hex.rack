@@ -1,0 +1,2 @@
+mov 0xA r4
+add 0xb4 r2

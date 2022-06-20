@@ -2,13 +2,25 @@ WHITESPACE = _{ " " }
 
 decnumber = @{ ASCII_DIGIT+ }
 
+hexnumber = @{ "0x" ~ (ASCII_HEX_DIGIT)+ }
+
+octnumber = @{ "0o" ~ (ASCII_OCT_DIGIT)+ }
+
+binnumber = @{ "0b" ~ (ASCII_BIN_DIGIT)+ }
+
 char = _{ ASCII_ALPHANUMERIC | "_" | "-" }
 
 reg = @{ ^"ip" | ^"acc" | ^"r1" | ^"r2" | ^"r3" | ^"r4" | ^"r5" | ^"r6" | ^"r7" | ^"r8" | ^"sp" | ^"bp" }
 
 word = @{ char+ }
 
-id = _{ decnumber | reg | word }
+number = _{ binnumber | octnumber | hexnumber | decnumber }
+
+memloc = { "[" ~ id ~ "]" }
+
+memoff = { "[" ~ number ~ "+" ~ id ~ "]" }
+
+id = _{ number | memoff | memloc | reg | word }
 
 binaryins = { word ~ id ~ id }
 

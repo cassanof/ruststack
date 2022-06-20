@@ -37,6 +37,6 @@ pub enum ASTArg {
     Label(String),
     Lit(u16),
     Reg(Register),
-    Mem(u16),
-    Offset(Box<ASTArg>, u16),
+    Mem(Box<ASTArg>),
+    Offset(Box<ASTArg>, Box<ASTArg>),
 }
