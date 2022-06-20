@@ -1,0 +1,29 @@
+WHITESPACE = _{ " " }
+
+decnumber = @{ ASCII_DIGIT+ }
+
+char = _{ ASCII_ALPHANUMERIC | "_" | "-" }
+
+reg = @{ ^"ip" | ^"acc" | ^"r1" | ^"r2" | ^"r3" | ^"r4" | ^"r5" | ^"r6" | ^"r7" | ^"r8" | ^"sp" | ^"bp" }
+
+word = @{ char+ }
+
+id = _{ decnumber | reg | word }
+
+binaryins = { word ~ id ~ id }
+
+unaryins = { word ~ id }
+
+nullaryins = { word }
+
+ins = _{ binaryins | unaryins | nullaryins }
+
+label = @{ word ~ ":" }
+
+expr = _{ label | ins }
+
+file = {
+  SOI ~
+  (expr? ~ NEWLINE)* ~
+  EOI
+}

@@ -1,0 +1,20 @@
+psh 2
+psh 1
+cal add
+mov 3 r1
+add acc r1
+hlt
+
+add: 
+  psh bp
+  mov sp bp
+  mov 4 r1
+  add sp r1
+  mov acc sp
+  add_after_setup:
+    pop r1
+    pop r2
+    add r1 r1
+    mov bp sp
+    pop bp
+    ret

@@ -99,7 +99,6 @@ impl CPU {
         match instruction {
             OpCode::MovLitReg => {
                 let lit = self.fetch_buf(2)?;
-                // modulus to loop back if we get a register index larger than the number of registers
                 let reg = self.fetch_reg_idx()?;
                 self.registers_memory.set_buf(reg, reg + 2, &lit);
             }
@@ -411,6 +410,10 @@ impl CPU {
                 if reg_val >= self.get_register(&Register::ACC) {
                     self.set_register(&Register::IP, addr);
                 }
+            }
+            OpCode::Jmp => {
+                let addr = to_u16(&self.fetch_buf(2)?);
+                self.set_register(&Register::IP, addr);
             }
             OpCode::PshLit => {
                 let value = &self.fetch_buf(2)?;

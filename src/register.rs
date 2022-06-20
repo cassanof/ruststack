@@ -3,7 +3,7 @@ use strum_macros::{AsRefStr, EnumCount as EnumCountMacro, EnumIter};
 
 use crate::cpu::CpuError;
 
-#[derive(Debug, Copy, Clone, EnumCountMacro, EnumIter, AsRefStr, PartialEq)]
+#[derive(Debug, Copy, Clone, EnumCountMacro, EnumIter, AsRefStr, PartialEq, Eq)]
 /// Represents the registers available in the CPU.
 pub enum Register {
     IP,  // Instruction pointer
@@ -30,7 +30,7 @@ impl FromStr for Register {
     type Err = CpuError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+        match s.to_ascii_lowercase().as_str() {
             "ip" => Ok(Register::IP),
             "acc" => Ok(Register::ACC),
             "r1" => Ok(Register::R1),

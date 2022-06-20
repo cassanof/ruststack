@@ -1,0 +1,7 @@
+mov 5 r1
+psh r1
+psh 4
+pop r2
+add r1 r2
+pop r2
+add acc r2

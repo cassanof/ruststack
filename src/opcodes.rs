@@ -94,6 +94,8 @@ pub enum OpCode {
     JmpGELit,
     /// Jumps to the given address if the given register is greater than or equal to the acc register
     JmpGEReg,
+    /// Jumps to the given address
+    Jmp,
 }
 
 impl From<OpCode> for u8 {
@@ -146,6 +148,7 @@ impl From<OpCode> for u8 {
             JmpLEReg => 0x3B,
             JmpGELit => 0x3C,
             JmpGEReg => 0x3D,
+            Jmp => 0x3E,
             NOP => 0x00,
         }
     }
@@ -201,6 +204,7 @@ impl From<u8> for OpCode {
             0x3B => JmpLEReg,
             0x3C => JmpGELit,
             0x3D => JmpGEReg,
+            0x3E => Jmp,
             _ => NOP,
         }
     }

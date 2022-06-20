@@ -2,6 +2,9 @@ pub mod cpu;
 pub mod memory;
 pub mod opcodes;
 pub mod register;
+pub mod parser;
+pub mod ast;
+pub mod assembler;
 
 /// The size of a register in bytes. 16 bits in this case.
 pub const REGISTER_SIZE: usize = 2;
