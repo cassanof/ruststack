@@ -1,7 +1,7 @@
 /// Represents an opcode that is executable by the CPU.
 pub enum OpCode {
     /// No operation
-    NOP,
+    Nop,
     /// Moves the literal value into the register
     MovLitReg,
     /// Moves the value in the register into the register
@@ -32,8 +32,6 @@ pub enum OpCode {
     MovLitMem,
     /// Moves the pointer register to the given register
     MovRegPtrReg,
-    /// Moves the given address plus a register to the given register
-    MovLitOffReg,
     /// Adds the given literal with the given register and stores the result in the acc register
     AddLitReg,
     /// Subtracts the given literal with the given register and stores the result in the acc register
@@ -59,7 +57,7 @@ pub enum OpCode {
     /// Shifts the given register right by the given register in place
     ShrRegReg,
     /// Bitwise ANDs the given register with the given literal and stores the result in the acc register
-    AndReglit,
+    AndRegLit,
     /// Bitwise ANDs the given register with the given register and stores the result in the acc register
     AndRegReg,
     /// Bitwise ORs the given register with the given literal and stores the result in the acc register
@@ -96,6 +94,8 @@ pub enum OpCode {
     JmpGEReg,
     /// Jumps to the given address
     Jmp,
+    /// System call, value retrieved from the ACC register, used to call a function in the VM
+    SysLit,
 }
 
 impl From<OpCode> for u8 {
@@ -117,7 +117,6 @@ impl From<OpCode> for u8 {
             Hlt => 0x1C,
             MovLitMem => 0x1D,
             MovRegPtrReg => 0x1E,
-            MovLitOffReg => 0x1F,
             AddLitReg => 0x20,
             SubLitReg => 0x21,
             SubRegLit => 0x22,
@@ -130,7 +129,7 @@ impl From<OpCode> for u8 {
             ShlRegReg => 0x29,
             ShrRegLit => 0x2A,
             ShrRegReg => 0x2B,
-            AndReglit => 0x2C,
+            AndRegLit => 0x2C,
             AndRegReg => 0x2D,
             OrRegLit => 0x2E,
             OrRegReg => 0x2F,
@@ -149,7 +148,8 @@ impl From<OpCode> for u8 {
             JmpGELit => 0x3C,
             JmpGEReg => 0x3D,
             Jmp => 0x3E,
-            NOP => 0x00,
+            SysLit => 0x3F,
+            Nop => 0x00,
         }
     }
 }
@@ -173,7 +173,6 @@ impl From<u8> for OpCode {
             0x1C => Hlt,
             0x1D => MovLitMem,
             0x1E => MovRegPtrReg,
-            0x1F => MovLitOffReg,
             0x20 => AddLitReg,
             0x21 => SubLitReg,
             0x22 => SubRegLit,
@@ -186,7 +185,7 @@ impl From<u8> for OpCode {
             0x29 => ShlRegReg,
             0x2A => ShrRegLit,
             0x2B => ShrRegReg,
-            0x2C => AndReglit,
+            0x2C => AndRegLit,
             0x2D => AndRegReg,
             0x2E => OrRegLit,
             0x2F => OrRegReg,
@@ -205,7 +204,8 @@ impl From<u8> for OpCode {
             0x3C => JmpGELit,
             0x3D => JmpGEReg,
             0x3E => Jmp,
-            _ => NOP,
+            0x3F => SysLit,
+            _ => Nop,
         }
     }
 }

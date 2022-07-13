@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::register::Register;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -27,6 +25,7 @@ pub enum ASTNode {
     Cal(ASTArg),
     Inc(ASTArg),
     Dec(ASTArg),
+    Sys(ASTArg),
     Ret,
     Hlt,
     Nop,

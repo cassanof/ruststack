@@ -3,6 +3,7 @@ psh 1
 cal add
 mov 3 r1
 add acc r1
+sys 0
 hlt
 
 add: 

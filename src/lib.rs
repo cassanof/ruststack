@@ -18,36 +18,11 @@ pub fn to_u16(iter: &[u8]) -> u16 {
 mod tests {
     use crate::{
         cpu::CPU,
-        memory::{InspectableAddr, Memory},
+        memory::{InspectableAddr, Memory, MemoryBuilder},
         opcodes::OpCode,
         register::Register,
     };
 
-    /// Memory buffer builder for easy testing.
-    struct MemoryBuilder {
-        memory: Memory,
-        counter: usize,
-    }
-
-    impl MemoryBuilder {
-        fn new(memory: Memory) -> MemoryBuilder {
-            MemoryBuilder { memory, counter: 0 }
-        }
-
-        fn push(&mut self, value: u8) -> usize {
-            self.memory.set(self.counter, value);
-            self.counter += 1;
-            self.counter
-        }
-
-        fn set_counter(&mut self, counter: usize) {
-            self.counter = counter;
-        }
-
-        fn build(self) -> Memory {
-            self.memory
-        }
-    }
 
     #[test]
     fn get_index_reg() {

@@ -70,6 +70,7 @@ impl ASTParser {
                         "cal" => ast.push(ASTNode::Cal(val)),
                         "inc" => ast.push(ASTNode::Inc(val)),
                         "dec" => ast.push(ASTNode::Dec(val)),
+                        "sys" => ast.push(ASTNode::Sys(val)),
                         _ => {
                             return Err(AssemblerError::Parser(format!(
                                 "Unknown unary instruction: {}",
@@ -94,7 +95,8 @@ impl ASTParser {
                 }
                 Rule::label => {
                     let label = node.as_span().as_str();
-                    ast.push(ASTNode::Label(label.to_string()))
+                    let no_colon = label.trim_end_matches(':');
+                    ast.push(ASTNode::Label(no_colon.to_string()))
                 }
                 Rule::EOI => break,
                 _ => {

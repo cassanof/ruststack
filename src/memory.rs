@@ -53,6 +53,12 @@ impl Memory {
     }
 }
 
+impl Default for Memory {
+    fn default() -> Self {
+        Memory::new(65535)
+    }
+}
+
 impl InspectableAddr for Memory {
     type Error = CpuError;
 
@@ -71,5 +77,46 @@ impl InspectableAddr for Memory {
             .iter()
             .fold(String::new(), |acc, b| format!("{} 0x{:02X}", acc, b));
         Ok(format!("0x{:04X}:{}", addr, bytes))
+    }
+}
+
+/// Memory buffer builder
+pub struct MemoryBuilder {
+    memory: Memory,
+    counter: usize,
+}
+
+impl MemoryBuilder {
+    pub fn new(memory: Memory) -> MemoryBuilder {
+        MemoryBuilder { memory, counter: 0 }
+    }
+
+    pub fn push(&mut self, value: u8) -> usize {
+        self.memory.set(self.counter, value);
+        self.counter += 1;
+        self.counter
+    }
+
+    pub fn push_u16(&mut self, value: u16) -> usize {
+        let bytes = value.to_be_bytes();
+        self.push(bytes[0]);
+        self.push(bytes[1]);
+        self.counter
+    }
+
+    pub fn get_counter(&self) -> usize {
+        self.counter
+    }
+
+    pub fn incr(&mut self) {
+        self.counter += 1;
+    }
+
+    pub fn set_counter(&mut self, counter: usize) {
+        self.counter = counter;
+    }
+
+    pub fn build(self) -> Memory {
+        self.memory
     }
 }

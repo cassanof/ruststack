@@ -151,25 +151,6 @@ impl CPU {
                     .unwrap();
                 self.registers_memory.set_buf(reg_to, reg_to + 2, value);
             }
-            OpCode::MovLitOffReg => {
-                let base_addr = to_u16(&self.fetch_buf(2)?);
-                let reg_offset = self.fetch_reg_idx()?;
-                let reg_to = self.fetch_reg_idx()?;
-                let offset = to_u16(
-                    &self
-                        .registers_memory
-                        .get_buf(reg_offset as usize, (reg_offset as usize) + 2)
-                        .unwrap(),
-                );
-                let value = &self
-                    .memory
-                    .get_buf(
-                        (base_addr + offset) as usize,
-                        (base_addr + offset) as usize + 2,
-                    )
-                    .unwrap();
-                self.registers_memory.set_buf(reg_to, reg_to + 2, value);
-            }
             OpCode::AddRegReg => {
                 let r1_idx = self.fetch_reg_idx()?;
                 let r2_idx = self.fetch_reg_idx()?;
@@ -270,7 +251,7 @@ impl CPU {
                 self.registers_memory
                     .set_buf(r1_idx, r1_idx + 2, &result.to_be_bytes());
             }
-            OpCode::AndReglit => {
+            OpCode::AndRegLit => {
                 let r_idx = self.fetch_reg_idx()?;
                 let val = to_u16(&self.fetch_buf(2)?);
                 let reg_val = to_u16(&self.registers_memory.get_buf(r_idx, r_idx + 2).unwrap());
@@ -447,9 +428,24 @@ impl CPU {
             OpCode::Hlt => {
                 return Ok(true);
             }
-            OpCode::NOP => (),
+            OpCode::SysLit => {
+                let value = self.fetch()?;
+                self.syscall(value)?;
+            }
+            OpCode::Nop => (),
         }
         Ok(false)
+    }
+
+    fn syscall(&self, value: u8) -> Result<(), CpuError> {
+        match value {
+            // prints the value of the accumulator
+            0x00 => {
+                println!("{}", self.get_register(&Register::ACC));
+            }
+            _ => return Err(CpuError::InvalidSyscall(value)),
+        };
+        Ok(())
     }
 
     pub fn step(&self) -> Result<bool, CpuError> {
@@ -491,6 +487,7 @@ pub enum CpuError {
     InvalidInstruction,
     InvalidRegister(String),
     InvalidAddress(u16),
+    InvalidSyscall(u8),
     InvalidValue,
 }
 
